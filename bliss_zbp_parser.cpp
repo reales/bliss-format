@@ -221,8 +221,7 @@ static bool listZipEntries(const std::string& zipPath,
 
 namespace BlissConvert {
 
-    // Modulation destination: normalized float -> integer index
-    // Formula: index = floor(value * 14)
+    // Modulation destination enum (append-only; unknown index -> None).
     static const char* modDestNames[] = {
         "None", "Amp", "Pitch",
         "Filter1Freq", "Filter1Reso", "Filter1Drive",
@@ -230,10 +229,19 @@ namespace BlissConvert {
         "LFO1Rate", "LFO2Rate",
         "LoopStart", "LoopEnd", "Pan"
     };
+    static const int kNumModDest = 14;
 
+    // A destination is stored either as the integer enum index (3.13+) or, in
+    // legacy files, as a normalized float (index + 0.5) / 14 in the open range
+    // (0, 1). Disambiguate by magnitude: a whole number (or >= 1) is an index;
+    // a fraction below 1 is the legacy float and decodes with floor(value * 14).
     int modDestToIndex(float value) {
-        int idx = static_cast<int>(value * 14.0f);
-        return std::clamp(idx, 0, 13);
+        int idx;
+        if (value > 0.0f && value < 1.0f)
+            idx = static_cast<int>(value * 14.0f);   // legacy float
+        else
+            idx = static_cast<int>(value + 0.5f);    // integer index (rounded)
+        return std::clamp(idx, 0, kNumModDest - 1);
     }
 
     float modDestToFloat(int index) {
@@ -409,9 +417,10 @@ struct BlissZone {
         if (auto* c = node.child("amp_env_rel_shp")) ampEnvRelShp.parse(*c);
         if (auto* c = node.child("amp_env_amt"))     ampEnvAmt.parse(*c);
 
-        // Amp env destinations: stored as float attributes on zone
-        ampEnvDest1 = node.attrFloat("amp_env_dest1", 0.03571f);
-        ampEnvDest2 = node.attrFloat("amp_env_dest2", 0.03571f);
+        // Amp env destinations: integer index (3.13+) or legacy normalized float.
+        // Read as a number; modDestToIndex() handles both encodings. None = 0.
+        ampEnvDest1 = node.attrFloat("amp_env_dest1", 0.0f);
+        ampEnvDest2 = node.attrFloat("amp_env_dest2", 0.0f);
         // Destination amounts are RTPAR child elements
         if (auto* c = node.child("amp_env_dest1amt")) ampEnvDest1Amt.parse(*c);
         if (auto* c = node.child("amp_env_dest2amt")) ampEnvDest2Amt.parse(*c);

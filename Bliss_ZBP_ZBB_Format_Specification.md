@@ -1,8 +1,8 @@
 # Bliss ZBP / ZBB File Format Specification
 
 > **Product:** Bliss -- sampler/synthesizer plugin by [discoDSP](https://www.discodsp.com/)
-> **Version documented:** 3.7.4 (`0x030704`)
-> **Date:** 2026-03-01
+> **Version documented:** 3.13 (`0x030D00`) -- adds MPE / expression and integer modulation-destination encoding (back-compatible with 3.7.4 `0x030704` and earlier)
+> **Date:** 2026-06-05
 
 ---
 
@@ -19,9 +19,10 @@
 9. [Data Types](#data-types)
 10. [Value Mappings](#value-mappings)
 11. [Macro System](#macro-system)
-12. [Effects Parameters](#effects-parameters)
-13. [ConvertWithMoss Integration Notes](#convertwithmoss-integration-notes)
-14. [Known Limitations](#known-limitations)
+12. [MPE / Expression](#mpe--expression)
+13. [Effects Parameters](#effects-parameters)
+14. [ConvertWithMoss Integration Notes](#convertwithmoss-integration-notes)
+15. [Known Limitations](#known-limitations)
 
 ---
 
@@ -211,6 +212,15 @@ All scalar properties are stored as **XML attributes** on the `<program>` elemen
 | `num_zones` | int | `0` | Number of zones in this program |
 | `ply_mode` | int | `2` | Play mode: 0=Mono, 1=Legato, 2=Poly |
 | `zone_selection` | float | `0.0` | Zone morphing control (0.0-1.0) |
+| `mpe_enabled` | bool | `false` | Master MPE switch; off = standard synth behaviour |
+| `expr_polyat` | bool | `false` | Z axis reads poly aftertouch (0xA0) instead of channel pressure (0xD0) |
+| `mpe_timbre_cc` | int | `74` | CC number that drives the Y (timbre) axis (0-127) |
+| `mpe_bend_range` | int | `48` | Per-note pitch-bend range in semitones (1-96) |
+| `mpe_rest_x` | int | `1` | X axis rest model: 0=Bottom, 1=Center |
+| `mpe_rest_y` | int | `0` | Y axis rest model: 0=Bottom, 1=Center |
+| `mpe_rest_z` | int | `0` | Z axis rest model: 0=Bottom, 1=Center |
+
+The six expression slots are stored as an `<expression>` child element (see MPE / Expression). All MPE attributes are optional; absent attributes default as above, so pre-3.13 presets load as non-MPE with no expression routing.
 
 ---
 
@@ -266,15 +276,15 @@ Each `<zone>` element within `<zones>` describes one mapped sample layer. Scalar
       flt2_kbd_trk="0.0"
       flt2_vel_trk="0.0"
       flt2_boost="1"
-      amp_env_dest1="0.03571"
-      amp_env_dest2="0.03571"
-      mod_env_dest1="0.03571"
-      mod_env_dest2="0.03571"
+      amp_env_dest1="0"
+      amp_env_dest2="0"
+      mod_env_dest1="0"
+      mod_env_dest2="0"
       mod_lfo1_type="0"
-      mod_lfo1_dest="0.03571"
+      mod_lfo1_dest="0"
       mod_lfo1_syn="0"
       mod_lfo2_type="0"
-      mod_lfo2_dest="0.03571"
+      mod_lfo2_dest="0"
       mod_lfo2_syn="0"
       efx_chr_enable="1"
       efx_del_enable="1"
@@ -402,15 +412,15 @@ Each `<zone>` element within `<zones>` describes one mapped sample layer. Scalar
 | `flt2_kbd_trk` | float | `0.0` | Keyboard tracking |
 | `flt2_vel_trk` | float | `0.0` | Velocity tracking |
 | `flt2_boost` | int | `1` | Boost mode |
-| `amp_env_dest1` | float | `0.03571` | Amp env destination 1 (RTDST float) |
-| `amp_env_dest2` | float | `0.03571` | Amp env destination 2 |
-| `mod_env_dest1` | float | `0.03571` | Mod env destination 1 |
-| `mod_env_dest2` | float | `0.03571` | Mod env destination 2 |
+| `amp_env_dest1` | int | `0` | Amp env destination 1 (RTDST index; legacy float) |
+| `amp_env_dest2` | int | `0` | Amp env destination 2 |
+| `mod_env_dest1` | int | `0` | Mod env destination 1 |
+| `mod_env_dest2` | int | `0` | Mod env destination 2 |
 | `mod_lfo1_type` | int | `0` | LFO 1 waveform (see enums) |
-| `mod_lfo1_dest` | float | `0.03571` | LFO 1 destination (RTDST float) |
+| `mod_lfo1_dest` | int | `0` | LFO 1 destination (RTDST index; legacy float) |
 | `mod_lfo1_syn` | int | `0` | LFO 1 host sync: 0=Free, 1=Sync |
 | `mod_lfo2_type` | int | `0` | LFO 2 waveform |
-| `mod_lfo2_dest` | float | `0.03571` | LFO 2 destination |
+| `mod_lfo2_dest` | int | `0` | LFO 2 destination |
 | `mod_lfo2_syn` | int | `0` | LFO 2 host sync |
 | `efx_chr_enable` | int | `1` | Chorus send enable |
 | `efx_del_enable` | int | `1` | Delay send enable |
@@ -535,26 +545,28 @@ The `midi_cc` child element contains `val0` through `val127` attributes for per-
 | 4     | Random   |
 | 5     | Wander   |
 
-### Modulation Destination (`mod_lfoN_dest`, `amp_env_destN`, `mod_env_destN`)
+### Modulation Destination (`mod_lfoN_dest`, `amp_env_destN`, `mod_env_destN`, expression slots)
 
-> **Stored as a normalized float**, not an integer. See the RTDST section in Data Types for the encoding formula and full lookup table.
+> Stored as the **integer enum index** (3.13+). Files written before 3.13 store a normalized float instead. See the RTDST section in Data Types for both encodings and how to disambiguate.
 
-| Index | Name              | Short | Stored float |
-|-------|-------------------|-------|--------------|
-| 0     | None              | --    | ~ 0.03571    |
-| 1     | Amp               | Amp   | ~ 0.10714    |
-| 2     | Pitch             | Pitch | ~ 0.17857    |
-| 3     | Filter 1 Freq     | F1 FQ | ~ 0.25000    |
-| 4     | Filter 1 Reso     | F1 RS | ~ 0.32143    |
-| 5     | Filter 1 Drive    | F1 DR | ~ 0.39286    |
-| 6     | Filter 2 Freq     | F2 FQ | ~ 0.46429    |
-| 7     | Filter 2 Reso     | F2 RS | ~ 0.53571    |
-| 8     | Filter 2 Drive    | F2 DR | ~ 0.60714    |
-| 9     | LFO 1 Rate        | L1 RT | ~ 0.67857    |
-| 10    | LFO 2 Rate        | L2 RT | ~ 0.75000    |
-| 11    | Loop Start        | LoopS | ~ 0.82143    |
-| 12    | Loop End          | LoopE | ~ 0.89286    |
-| 13    | Pan               | Pan   | ~ 0.96429    |
+| Index | Name              | Short |
+|-------|-------------------|-------|
+| 0     | None              | --    |
+| 1     | Amp               | Amp   |
+| 2     | Pitch             | Pitch |
+| 3     | Filter 1 Freq     | F1 FQ |
+| 4     | Filter 1 Reso     | F1 RS |
+| 5     | Filter 1 Drive    | F1 DR |
+| 6     | Filter 2 Freq     | F2 FQ |
+| 7     | Filter 2 Reso     | F2 RS |
+| 8     | Filter 2 Drive    | F2 DR |
+| 9     | LFO 1 Rate        | L1 RT |
+| 10    | LFO 2 Rate        | L2 RT |
+| 11    | Loop Start        | LoopS |
+| 12    | Loop End          | LoopE |
+| 13    | Pan               | Pan   |
+
+> The enum is append-only: future versions may add destinations after index 13. Treat an unknown index as `None`.
 
 ### MIDI Trigger (`midi_trigger`)
 
@@ -614,36 +626,41 @@ Used for modulatable parameters. Both fields are stored as **attributes** on a c
 
 ### RTDST -- Modulation Destination
 
-Stored as a **normalized float** attribute, not an integer. The enum index is mapped to a float using a slot-center encoding with `Count = 14` slots (None through Pan):
+A modulation destination is the index into the `BlissModDest` enumeration (None through Pan). It is serialized in two formats, and readers **must accept both**:
 
-```
-float = (index + 0.5) / 14
-```
-
-| Destination | Index | Stored float value |
-|-------------|-------|--------------------|
-| None        | 0     | ~ 0.03571          |
-| Amp         | 1     | ~ 0.10714          |
-| Pitch       | 2     | ~ 0.17857          |
-| Filter 1 Freq | 3   | ~ 0.25000          |
-| Filter 1 Reso | 4   | ~ 0.32143          |
-| Filter 1 Drive | 5  | ~ 0.39286          |
-| Filter 2 Freq | 6   | ~ 0.46429          |
-| Filter 2 Reso | 7   | ~ 0.53571          |
-| Filter 2 Drive | 8  | ~ 0.60714          |
-| LFO 1 Rate  | 9     | ~ 0.67857          |
-| LFO 2 Rate  | 10    | ~ 0.75000          |
-| Loop Start  | 11    | ~ 0.82143          |
-| Loop End    | 12    | ~ 0.89286          |
-| Pan         | 13    | ~ 0.96429          |
-
-To decode a stored float back to an index: `index = floor(value * 14)`.
+**Current format (integer index).** As of the 3.13 file format, destinations are stored as the plain integer enum index. This is forward-compatible: new destinations can be appended to `BlissModDest` without shifting existing values.
 
 ```xml
-<zone amp_env_dest1="0.25" ...>   <!-- Filter 1 Frequency -->
+<zone amp_env_dest1="3" ...>   <!-- Filter 1 Frequency -->
 ```
 
-This applies to `amp_env_dest1`, `amp_env_dest2`, `mod_env_dest1`, `mod_env_dest2`, `mod_lfo1_dest`, and `mod_lfo2_dest`.
+**Legacy format (normalized float).** Files written before 3.13 store the index as a normalized float using a slot-center encoding with `Count = 14` slots:
+
+```
+float = (index + 0.5) / 14      (encode)
+index = floor(value * 14)       (decode)
+```
+
+| Destination     | Index | Legacy float |
+|-----------------|-------|--------------|
+| None            | 0     | ~ 0.03571    |
+| Amp             | 1     | ~ 0.10714    |
+| Pitch           | 2     | ~ 0.17857    |
+| Filter 1 Freq   | 3     | ~ 0.25000    |
+| Filter 1 Reso   | 4     | ~ 0.32143    |
+| Filter 1 Drive  | 5     | ~ 0.39286    |
+| Filter 2 Freq   | 6     | ~ 0.46429    |
+| Filter 2 Reso   | 7     | ~ 0.53571    |
+| Filter 2 Drive  | 8     | ~ 0.60714    |
+| LFO 1 Rate      | 9     | ~ 0.67857    |
+| LFO 2 Rate      | 10    | ~ 0.75000    |
+| Loop Start      | 11    | ~ 0.82143    |
+| Loop End        | 12    | ~ 0.89286    |
+| Pan             | 13    | ~ 0.96429    |
+
+**How to tell them apart.** A value `>= 1` (or exactly `0` written as an integer) is a current integer index; a fractional value in the open range `(0, 1)` is a legacy float and must be decoded with `floor(value * 14)`. In XML attributes the disambiguation is by magnitude (integers are whole numbers `>= 0`; legacy floats are non-integers `< 1`). The MPE preset XML format uses a distinct `destIndex` integer attribute and falls back to the legacy float `dest` attribute when `destIndex` is absent.
+
+This applies to the zone attributes `amp_env_dest1`, `amp_env_dest2`, `mod_env_dest1`, `mod_env_dest2`, `mod_lfo1_dest`, `mod_lfo2_dest`, and to the program-level `expression` slot destinations (see MPE / Expression).
 
 ### Modulation Amount (`amp_env_dest1amt`, `amp_env_dest2amt`, `mod_env_dest1amt`, `mod_env_dest2amt`)
 
@@ -764,6 +781,58 @@ A program has 8 macros. Each macro is a child element within `<macros>`:
 | `max_value` | float | Macro value 1.0 maps to this parameter value |
 
 Macros are exposed as MIDI CC mappings via program options (CC indices 66-73 for macros 1-8).
+
+---
+
+## MPE / Expression
+
+Added in the 3.13 file format. A program carries a per-note **expression bus** with three axes — **X** (pitch bend), **Y** (timbre, CC 74 by default) and **Z** (pressure) — each routable to any modulation destination. The axis sources become true per-note MIDI Polyphonic Expression when `mpe_enabled` is set.
+
+The master switch and axis configuration are **program attributes** (see Program Attributes: `mpe_enabled`, `expr_polyat`, `mpe_timbre_cc`, `mpe_bend_range`, `mpe_rest_x/y/z`). The routing itself lives in an `<expression>` child element with six fixed slots.
+
+### `<expression>` Element
+
+```xml
+<expression>
+  <expr0 dest="2" invert="0"><amt value="1.0" sense="0.5"/></expr0>   <!-- X1 -->
+  <expr1 dest="0" invert="0"><amt value="1.0" sense="0.5"/></expr1>   <!-- X2 -->
+  <expr2 dest="3" invert="0"><amt value="1.0" sense="0.5"/></expr2>   <!-- Y1 -->
+  <expr3 dest="0" invert="0"><amt value="1.0" sense="0.5"/></expr3>   <!-- Y2 -->
+  <expr4 dest="1" invert="0"><amt value="1.0" sense="0.5"/></expr4>   <!-- Z1 -->
+  <expr5 dest="0" invert="0"><amt value="1.0" sense="0.5"/></expr5>   <!-- Z2 -->
+</expression>
+```
+
+The six slots are addressed by element name `expr0` … `expr5` and grouped into axes by index:
+
+| Slots | Axis | Source (when `mpe_enabled`)        |
+|-------|------|------------------------------------|
+| 0, 1  | X    | Per-note pitch bend                |
+| 2, 3  | Y    | Timbre — CC `mpe_timbre_cc` (CC 74)|
+| 4, 5  | Z    | Pressure — channel pressure, or poly aftertouch if `expr_polyat` |
+
+### Slot Attributes / Child
+
+| Field    | Kind      | Type | Default | Description |
+|----------|-----------|------|---------|-------------|
+| `dest`   | attribute | int  | `0`     | Modulation destination (RTDST index; legacy float accepted) |
+| `invert` | attribute | bool | `false` | Invert this slot's contribution |
+| `amt`    | child     | RTPAR | `value=1.0, sense=0.5` | Routing depth (morphable) |
+
+Each slot multiplies its axis value by `amt` (and the destination's RTDST mask) and sums into the destination, exactly like an LFO/envelope route. A slot with `dest = None (0)` is inactive. When `mpe_enabled` is false the expression bus is dormant and the program behaves as a standard synth.
+
+### Axis Rest Model
+
+`mpe_rest_x/y/z` select how the raw axis value is centred before routing:
+
+| Value | Name   | Mapping                         | Typical axis |
+|-------|--------|---------------------------------|--------------|
+| 0     | Bottom | `out = raw` (0 at rest)         | Y, Z         |
+| 1     | Center | `out = (raw - 0.5) * 2` (bipolar, 0 at centre) | X |
+
+### MPE Presets
+
+The MPE configuration (the six slots plus the axis settings) can also be saved as a standalone XML preset. That format stores each slot under a `<Slot>` element keyed by `index`, with the destination in a **`destIndex`** integer attribute (legacy presets used a float `dest` attribute), plus `value`, `sense` and `invert`.
 
 ---
 
