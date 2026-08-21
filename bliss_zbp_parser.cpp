@@ -74,44 +74,41 @@ static std::string xmlTrim(const std::string& s) {
     return s.substr(a, b - a + 1);
 }
 
-static bool parseXml(const std::string& xml, size_t& pos, XmlNode& node);
-
-static bool parseXml(const std::string& xml, size_t& pos, XmlNode& node) {
+// Parses exactly one element starting at (or after) pos. Returns false at end
+// of input or when the next tag is a closing tag (pos left pointing at it).
+static bool parseElement(const std::string& xml, size_t& pos, XmlNode& node) {
     while (pos < xml.size()) {
         size_t lt = xml.find('<', pos);
-        if (lt == std::string::npos) break;
+        if (lt == std::string::npos) { pos = xml.size(); return false; }
 
         // skip comments
         if (xml.compare(lt, 4, "<!--") == 0) {
             size_t end = xml.find("-->", lt + 4);
-            if (end == std::string::npos) break;
+            if (end == std::string::npos) { pos = xml.size(); return false; }
             pos = end + 3;
             continue;
         }
 
-        // closing tag
+        // closing tag belongs to the caller
         if (xml[lt + 1] == '/') {
-            pos = xml.find('>', lt) + 1;
-            return true;
+            pos = lt;
+            return false;
         }
 
-        // opening tag
         size_t gt = xml.find('>', lt);
-        if (gt == std::string::npos) break;
+        if (gt == std::string::npos) { pos = xml.size(); return false; }
 
         std::string tagContent = xml.substr(lt + 1, gt - lt - 1);
         bool selfClosing = (!tagContent.empty() && tagContent.back() == '/');
         if (selfClosing) tagContent.pop_back();
 
-        XmlNode child;
-        // parse tag name and attributes
+        // parse tag name and attributes: key="value"
         size_t sp = tagContent.find_first_of(" \t\r\n");
         if (sp == std::string::npos) {
-            child.tag = tagContent;
+            node.tag = tagContent;
         } else {
-            child.tag = tagContent.substr(0, sp);
+            node.tag = tagContent.substr(0, sp);
             std::string attrStr = tagContent.substr(sp);
-            // simple attribute parsing: key="value"
             size_t ap = 0;
             while (ap < attrStr.size()) {
                 size_t eq = attrStr.find('=', ap);
@@ -121,7 +118,7 @@ static bool parseXml(const std::string& xml, size_t& pos, XmlNode& node) {
                 if (q1 == std::string::npos) break;
                 size_t q2 = attrStr.find('"', q1 + 1);
                 if (q2 == std::string::npos) break;
-                child.attributes[key] = attrStr.substr(q1 + 1, q2 - q1 - 1);
+                node.attributes[key] = attrStr.substr(q1 + 1, q2 - q1 - 1);
                 ap = q2 + 1;
             }
         }
@@ -129,23 +126,20 @@ static bool parseXml(const std::string& xml, size_t& pos, XmlNode& node) {
         pos = gt + 1;
 
         if (!selfClosing) {
-            // collect text content and child elements
+            // collect text content and child elements until our closing tag
             while (pos < xml.size()) {
                 size_t nextLt = xml.find('<', pos);
-                if (nextLt == std::string::npos) break;
+                if (nextLt == std::string::npos) { pos = xml.size(); break; }
 
-                // accumulate text before next tag
                 std::string textBefore = xmlTrim(xml.substr(pos, nextLt - pos));
                 if (!textBefore.empty())
-                    child.text += textBefore;
+                    node.text += textBefore;
 
-                // check for closing tag
                 if (xml[nextLt + 1] == '/') {
                     pos = xml.find('>', nextLt) + 1;
                     break;
                 }
 
-                // skip comments
                 if (xml.compare(nextLt, 4, "<!--") == 0) {
                     size_t end = xml.find("-->", nextLt + 4);
                     if (end == std::string::npos) { pos = xml.size(); break; }
@@ -153,17 +147,17 @@ static bool parseXml(const std::string& xml, size_t& pos, XmlNode& node) {
                     continue;
                 }
 
-                // parse child element
-                XmlNode grandchild;
-                if (parseXml(xml, pos, grandchild))
-                    ; // parseXml advances pos
-                child.children.push_back(std::move(grandchild));
+                pos = nextLt;
+                XmlNode child;
+                if (!parseElement(xml, pos, child))
+                    break;
+                node.children.push_back(std::move(child));
             }
         }
 
-        node.children.push_back(std::move(child));
+        return true;
     }
-    return true;
+    return false;
 }
 
 static XmlNode parseXmlString(const std::string& xml) {
@@ -173,7 +167,11 @@ static XmlNode parseXmlString(const std::string& xml) {
     if (xml.find("<?xml") == 0) {
         pos = xml.find("?>") + 2;
     }
-    parseXml(xml, pos, root);
+    XmlNode top;
+    while (parseElement(xml, pos, top)) {
+        root.children.push_back(std::move(top));
+        top = XmlNode();
+    }
     return root;
 }
 
@@ -287,10 +285,11 @@ namespace BlissConvert {
     }
 
     int versionFromString(const std::string& s) {
-        // Parse "0x030704" hex format
+        // Bliss writes the version as a decimal integer (JUCE int property),
+        // e.g. "197120" = 0x30200 = 3.2.0. Accept a "0x..." hex string too.
         if (s.size() > 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X'))
             return static_cast<int>(std::strtol(s.c_str(), nullptr, 16));
-        return 0;
+        return static_cast<int>(std::strtol(s.c_str(), nullptr, 10));
     }
 }
 
@@ -339,6 +338,22 @@ struct BlissZone {
     // Resource groups
     int resGroup = 0;
     int resOffby = 0;
+
+    // Keyswitch (3.8+)
+    int swLast  = -1;
+    int swLokey = -1;
+    int swHikey = -1;
+
+    // Round robin (3.8+)
+    int   seqLength   = 0;
+    int   seqPosition = 1;
+    float lorand = 0.0f;
+    float hirand = 1.0f;
+
+    // CC choke (3.20+)
+    int chokeCc = -1;
+    int chokeLo = 64;
+    int chokeHi = 127;
 
     // Filter 1
     int   flt1Type = 0;
@@ -402,6 +417,18 @@ struct BlissZone {
         resGroup = node.attrInt("res_group", 0);
         resOffby = node.attrInt("res_offby", 0);
 
+        // Keyswitch, round robin, CC choke (attributes; absent = defaults)
+        swLast  = node.attrInt("sw_last", -1);
+        swLokey = node.attrInt("sw_lokey", -1);
+        swHikey = node.attrInt("sw_hikey", -1);
+        seqLength   = node.attrInt("seq_length", 0);
+        seqPosition = node.attrInt("seq_position", 1);
+        lorand = node.attrFloat("lorand", 0.0f);
+        hirand = node.attrFloat("hirand", 1.0f);
+        chokeCc = node.attrInt("choke_cc", -1);
+        chokeLo = node.attrInt("choke_lo", 64);
+        chokeHi = node.attrInt("choke_hi", 127);
+
         // Filter 1 type (attribute), cutoff/reso are RTPAR child elements
         flt1Type = node.attrInt("flt1_type", 0);
         if (auto* c = node.child("flt1_cut_frq")) flt1CutFrq.parse(*c);
@@ -441,6 +468,7 @@ struct BlissProgram {
     int         version  = 0;
     int         plyMode  = 2;
     int         numZones = 0;
+    std::string linkedGroups;   // 3.20+: comma-separated res_group ids
     std::vector<BlissZone> zones;
 
     void parse(const XmlNode& programNode) {
@@ -449,6 +477,7 @@ struct BlissProgram {
         name     = programNode.attr("name", "---");
         plyMode  = programNode.attrInt("ply_mode", 2);
         numZones = programNode.attrInt("num_zones", 0);
+        linkedGroups = programNode.attr("linked_groups", "");
 
         // Parse zones: <zones> child contains <zone> children
         if (auto* zonesNode = programNode.child("zones")) {
@@ -479,6 +508,11 @@ static const char* filterTypeName(int t) {
         "Bandpass2", "Notch", "Peak"
     };
     return (t >= 0 && t < 7) ? names[t] : "Unknown";
+}
+
+static const char* triggerName(int t) {
+    static const char* names[] = { "Attack", "Release", "OneShot" };
+    return (t >= 0 && t < 3) ? names[t] : "Unknown";
 }
 
 static const char* playModeName(int m) {
@@ -548,9 +582,28 @@ void printZone(const BlissZone& z, int index) {
     if (z.unisonEnable > 0)
         printf("    Unison:     %d voices  detune=%.1f\n", z.unisonVoices, z.unisonDetune);
 
+    // Trigger
+    if (z.midiTrigger != 0)
+        printf("    Trigger:    %s\n", triggerName(z.midiTrigger));
+
     // Resource groups
     if (z.resGroup > 0 || z.resOffby > 0)
         printf("    Group:      %d   Off_by: %d\n", z.resGroup, z.resOffby);
+
+    // Keyswitch
+    if (z.swLast >= 0)
+        printf("    Keyswitch:  %s (%d)  range %d-%d\n",
+               noteName(z.swLast).c_str(), z.swLast, z.swLokey, z.swHikey);
+
+    // Round robin
+    if (z.seqLength >= 2)
+        printf("    RoundRobin: step %d of %d\n", z.seqPosition, z.seqLength);
+    if (z.lorand > 0.0f || z.hirand < 1.0f)
+        printf("    Random:     %.2f - %.2f\n", z.lorand, z.hirand);
+
+    // CC choke
+    if (z.chokeCc >= 0)
+        printf("    Choke:      CC %d  window %d-%d\n", z.chokeCc, z.chokeLo, z.chokeHi);
 
     // Source path
     if (!z.path.empty())
@@ -568,6 +621,8 @@ void printProgram(const BlissProgram& prog, int index = -1) {
            BlissConvert::versionToString(prog.version).c_str(),
            prog.version);
     printf("  Play mode: %s\n", playModeName(prog.plyMode));
+    if (!prog.linkedGroups.empty())
+        printf("  Linked groups: %s\n", prog.linkedGroups.c_str());
     printf("  Zones:    %d\n", static_cast<int>(prog.zones.size()));
 
     for (int z = 0; z < static_cast<int>(prog.zones.size()); z++)

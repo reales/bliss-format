@@ -1,8 +1,8 @@
 # Bliss ZBP / ZBB File Format Specification
 
 > **Product:** Bliss -- sampler/synthesizer plugin by [discoDSP](https://www.discodsp.com/)
-> **Version documented:** 3.13 (`0x030D00`) -- adds MPE / expression and integer modulation-destination encoding (back-compatible with 3.7.4 `0x030704` and earlier)
-> **Date:** 2026-06-05
+> **Version documented:** 3.20 (`0x31400`) -- adds keyswitches, round robins, CC crossfades (3.8), MPE / expression and integer modulation-destination encoding (3.13), CC choke, linked groups, DAC model and One Shot trigger (3.20). Back-compatible with 3.7.4 `0x030704` and earlier.
+> **Date:** 2026-08-21
 
 ---
 
@@ -107,10 +107,10 @@ The bank XML has a `<bank>` root element containing two child elements: `<status
           current_zone="0"
           save_samples_plugin="0"/>
   <programs>
-    <program version="0x030704" name="Preset 1" ...>
+    <program version="201728" name="Preset 1" ...>
       <!-- Same structure as program.xml (see below) -->
     </program>
-    <program version="0x030704" name="Preset 2" ...>
+    <program version="201728" name="Preset 2" ...>
       ...
     </program>
     <!-- up to 128 programs -->
@@ -139,7 +139,7 @@ File: `program.xml` (inside ZBP). In a ZBB bank, each `<program>` inside `<progr
 All scalar properties are stored as **XML attributes** on the `<program>` element. Compound structures (macros, zones) are child elements.
 
 ```xml
-<program version="0x030704"
+<program version="201728"
          name="My Preset"
          solo_zone="-1"
          num_zones="4"
@@ -206,11 +206,12 @@ All scalar properties are stored as **XML attributes** on the `<program>` elemen
 
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `version` | hex int | `0` | Format version, e.g. `0x030704` = 3.7.4 |
+| `version` | int | `0` | Format version, written as a **decimal integer** whose value encodes `0xAABBCC` = Major.Minor.Patch (e.g. `201728` = `0x31400` = 3.20.0, `197120` = `0x30200` = 3.2.0) |
 | `name` | string | `"---"` | Preset name |
 | `solo_zone` | int | `-1` | Soloed zone index (-1 = none) |
 | `num_zones` | int | `0` | Number of zones in this program |
 | `ply_mode` | int | `2` | Play mode: 0=Mono, 1=Legato, 2=Poly |
+| `linked_groups` | string | absent | 3.20+. Comma-separated list of linked `res_group` ids (e.g. `"1,3"`). Zone edits apply to all zones sharing a linked group. Written only when non-empty; ids are `> 0` |
 | `zone_selection` | float | `0.0` | Zone morphing control (0.0-1.0) |
 | `mpe_enabled` | bool | `false` | Master MPE switch; off = standard synth behaviour |
 | `expr_polyat` | bool | `false` | Z axis reads poly aftertouch (0xA0) instead of channel pressure (0xD0) |
@@ -253,6 +254,14 @@ Each `<zone>` element within `<zones>` describes one mapped sample layer. Scalar
       num_cues="0"
       res_group="0"
       res_offby="0"
+      sw_last="-1"
+      sw_lokey="-1"
+      sw_hikey="-1"
+      seq_length="0"
+      seq_position="1"
+      lorand="0.0"
+      hirand="1.0"
+      xf_cccurve="0"
       view_offset="0.0"
       view_length="1.0"
       select_offset="0.0"
@@ -389,6 +398,21 @@ Each `<zone>` element within `<zones>` describes one mapped sample layer. Scalar
 | `num_cues` | int | `0` | Number of active cue points |
 | `res_group` | int | `0` | Resource group (SFZ `group=`) |
 | `res_offby` | int | `0` | Off-by group (SFZ `off_by=`) |
+| `sw_last` | int | `-1` | 3.8+. Keyswitch note this zone responds to (SFZ `sw_last`); -1 = disabled |
+| `sw_lokey` | int | `-1` | 3.8+. Keyswitch range low bound (-1 = not set) |
+| `sw_hikey` | int | `-1` | 3.8+. Keyswitch range high bound (-1 = not set) |
+| `seq_length` | int | `0` | 3.8+. Round robin cycle length (SFZ `seq_length`); 0 or 1 = disabled, 2-100 = active |
+| `seq_position` | int | `1` | 3.8+. 1-based round robin step this zone fires on |
+| `lorand` | float | `0.0` | 3.8+. Random layer lower bound 0.0-1.0 (SFZ `lorand`) |
+| `hirand` | float | `1.0` | 3.8+. Random layer upper bound 0.0-1.0 (SFZ `hirand`) |
+| `xfin_locc_N` | int | absent | 3.8+. CC crossfade fade-in start for CC `N` (0-127); written only when >= 0 |
+| `xfin_hicc_N` | int | absent | 3.8+. CC crossfade fade-in end (full volume) |
+| `xfout_locc_N` | int | absent | 3.8+. CC crossfade fade-out start (full volume) |
+| `xfout_hicc_N` | int | absent | 3.8+. CC crossfade fade-out end (zero volume) |
+| `xf_cccurve` | int | `0` | 3.8+. Crossfade curve: 0=Power (equal-power sqrt), 1=Gain (linear) |
+| `choke_cc` | int | `-1` | 3.20+. CC choke controller (-1 = off); choke fields written only when >= 0 |
+| `choke_lo` | int | `64` | 3.20+. Choke window low; playing voices are cut when the CC enters [choke_lo, choke_hi] |
+| `choke_hi` | int | `127` | 3.20+. Choke window high |
 | `view_offset` | double | `0.0` | Editor view offset |
 | `view_length` | double | `1.0` | Editor view length |
 | `select_offset` | double | `0.0` | Selection start |
@@ -406,12 +430,12 @@ Each `<zone>` element within `<zones>` describes one mapped sample layer. Scalar
 | `flt1_type` | int | `0` | Filter 1 type (see enums) |
 | `flt1_kbd_trk` | float | `0.0` | Keyboard tracking (0.0-1.0) |
 | `flt1_vel_trk` | float | `0.0` | Velocity tracking (0.0-1.0) |
-| `flt1_boost` | int | `1` | Boost mode: 0=off, 1=on |
+| `flt1_boost` | int | `1` | 3.18+. Boost mode: 0=off, 1=on (forced 0 on pre-3.18 files) |
 | `flt2_mode` | int | `0` | 0=Serial, 1=Parallel |
 | `flt2_type` | int | `0` | Filter 2 type (see enums) |
 | `flt2_kbd_trk` | float | `0.0` | Keyboard tracking |
 | `flt2_vel_trk` | float | `0.0` | Velocity tracking |
-| `flt2_boost` | int | `1` | Boost mode |
+| `flt2_boost` | int | `1` | 3.18+. Boost mode (forced 0 on pre-3.18 files) |
 | `amp_env_dest1` | int | `0` | Amp env destination 1 (RTDST index; legacy float) |
 | `amp_env_dest2` | int | `0` | Amp env destination 2 |
 | `mod_env_dest1` | int | `0` | Mod env destination 1 |
@@ -570,10 +594,11 @@ The `midi_cc` child element contains `val0` through `val127` attributes for per-
 
 ### MIDI Trigger (`midi_trigger`)
 
-| Value | Name    |
-|-------|---------|
-| 0     | Attack  |
-| 1     | Release |
+| Value | Name     | Notes |
+|-------|----------|-------|
+| 0     | Attack   | |
+| 1     | Release  | Plays on note-off |
+| 2     | One Shot | 3.20+. Plays the whole sample ignoring note-off; loop is forced off (SFZ `loop_mode=one_shot`) |
 
 ### Audio Output (`audio_out`)
 
@@ -603,9 +628,24 @@ The `midi_cc` child element contains `val0` through `val127` attributes for per-
 
 | Value | Name    |
 |-------|---------|
-| 0     | Normal  |
+| 0     | Normal (Fast) |
 | 1     | High    |
 | 2     | Extreme |
+
+Since 3.18, realtime playback always uses High; the stored value is ignored on load.
+
+### DAC Model (`efx_bitsreducer_dac`)
+
+3.20+. Vintage sampler DAC output stage applied per voice by the crusher (converter only, no filters modelled).
+
+| Value | Name         |
+|-------|--------------|
+| 0     | Off          |
+| 1     | SP-1200 (12 bit) |
+| 2     | MPC60 (12 bit)   |
+| 3     | Emulator II (8 bit) |
+| 4     | LinnDrum (8 bit)    |
+| 5     | Mirage (8 bit)      |
 
 ---
 
@@ -892,6 +932,7 @@ All effects are program-level attributes on the `<program>` element. Each zone c
 | `efx_bitsreducer` | int | 0 | Bit crusher enable |
 | `efx_bitsreducer_pre` | int | 0 | Pre/post |
 | `efx_bitsreducer_bits` | float | 1.0 | Bit reduction |
+| `efx_bitsreducer_dac` | int | 0 | 3.20+. Vintage DAC model (see DAC Model enum) |
 | `efx_stereo_rotation` | float | 0.0 | Stereo rotation |
 | `efx_rck` | int | 0 | Rack effect enable |
 | `efx_softclip` | int | 0 | Soft clip enable |
@@ -973,10 +1014,17 @@ All effects are program-level attributes on the `<program>` element. Each zone c
 Always write the version attribute on the `<program>` root element:
 
 ```xml
-<program version="0x030704" ...>
+<program version="201728" ...>
 ```
 
-The format `0xAABBCC` encodes Major (AA), Minor (BB), Patch (CC) as hex pairs.
+The value is a **decimal integer** (JUCE serializes int properties as decimal). Its numeric value encodes the version as `0xAABBCC` -- Major (AA), Minor (BB), Patch (CC) hex pairs, leading zeros omitted. Examples: `201728` = `0x31400` = 3.20.0; `197120` = `0x30200` = 3.2.0.
+
+### Loader Migrations
+
+On load Bliss rewrites the program version to the current one and migrates legacy data:
+
+- **< 3.13:** modulation destinations stored as normalized floats are decoded with `floor(value * 14)` (see RTDST).
+- **< 3.18 (`0x31200`):** filter boost did not exist; `flt1_boost` / `flt2_boost` are forced to `0` on every zone so legacy presets keep their tone. Absent boost attributes on 3.18+ files default to `1`.
 
 ---
 

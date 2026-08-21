@@ -132,7 +132,7 @@ The reference parser includes conversion helpers for all non-linear mappings:
 | Filter cutoff | `hz = 20 + x^2 * (22050 - 20)` | 20 Hz - 22050 Hz |
 | Envelope time | `sec = 0.001 + x^4 * 15.999` | 1 ms - 16 seconds |
 | Mod destination | integer index (3.13+); legacy `index = floor(value * 14)` | 0-13 (append-only) |
-| Version hex | `0xAABBCC` -> `A.B.C` | e.g. `0x030704` -> `3.7.4` |
+| Version | decimal int, value encodes `0xAABBCC` -> `A.B.C` | e.g. `201728` = `0x31400` -> `3.20.0` |
 
 See the [full specification](Bliss_ZBP_ZBB_Format_Specification.md) for complete details.
 
