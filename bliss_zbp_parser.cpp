@@ -467,6 +467,7 @@ struct BlissProgram {
     std::string name;
     int         version  = 0;
     int         plyMode  = 2;
+    int         velCurve = 0;       // 3.26+: note-on velocity curve
     int         numZones = 0;
     std::string linkedGroups;   // 3.20+: comma-separated res_group ids
     std::vector<BlissZone> zones;
@@ -476,6 +477,7 @@ struct BlissProgram {
         version  = BlissConvert::versionFromString(programNode.attr("version", "0"));
         name     = programNode.attr("name", "---");
         plyMode  = programNode.attrInt("ply_mode", 2);
+        velCurve = programNode.attrInt("vel_curve", 0);
         numZones = programNode.attrInt("num_zones", 0);
         linkedGroups = programNode.attr("linked_groups", "");
 
@@ -518,6 +520,11 @@ static const char* triggerName(int t) {
 static const char* playModeName(int m) {
     static const char* names[] = { "Mono", "Legato", "Poly" };
     return (m >= 0 && m < 3) ? names[m] : "Unknown";
+}
+
+static const char* velocityCurveName(int c) {
+    static const char* names[] = { "Linear", "Soft", "Softer", "Hard", "Harder", "S-Curve" };
+    return (c >= 0 && c < 6) ? names[c] : "Unknown";
 }
 
 static std::string noteName(int midi) {
@@ -621,6 +628,7 @@ void printProgram(const BlissProgram& prog, int index = -1) {
            BlissConvert::versionToString(prog.version).c_str(),
            prog.version);
     printf("  Play mode: %s\n", playModeName(prog.plyMode));
+    printf("  Velocity curve: %s\n", velocityCurveName(prog.velCurve));
     if (!prog.linkedGroups.empty())
         printf("  Linked groups: %s\n", prog.linkedGroups.c_str());
     printf("  Zones:    %d\n", static_cast<int>(prog.zones.size()));

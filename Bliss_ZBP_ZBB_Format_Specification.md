@@ -1,8 +1,8 @@
 # Bliss ZBP / ZBB File Format Specification
 
 > **Product:** Bliss -- sampler/synthesizer plugin by [discoDSP](https://www.discodsp.com/)
-> **Version documented:** 3.20 (`0x31400`) -- adds keyswitches, round robins, CC crossfades (3.8), MPE / expression and integer modulation-destination encoding (3.13), CC choke, linked groups, DAC model and One Shot trigger (3.20). Back-compatible with 3.7.4 `0x030704` and earlier.
-> **Date:** 2026-08-21
+> **Version documented:** 3.26 (`0x31A00`) -- adds the program velocity curve (3.26), keyswitches, round robins, CC crossfades (3.8), MPE / expression and integer modulation-destination encoding (3.13), CC choke, linked groups, DAC model and One Shot trigger (3.20). Back-compatible with 3.7.4 `0x030704` and earlier.
+> **Date:** 2026-09-21
 
 ---
 
@@ -211,6 +211,7 @@ All scalar properties are stored as **XML attributes** on the `<program>` elemen
 | `solo_zone` | int | `-1` | Soloed zone index (-1 = none) |
 | `num_zones` | int | `0` | Number of zones in this program |
 | `ply_mode` | int | `2` | Play mode: 0=Mono, 1=Legato, 2=Poly |
+| `vel_curve` | int | `0` | 3.26+. Note-on velocity curve, see [Velocity Curve](#velocity-curve-vel_curve). Written only when not Linear |
 | `linked_groups` | string | absent | 3.20+. Comma-separated list of linked `res_group` ids (e.g. `"1,3"`). Zone edits apply to all zones sharing a linked group. Written only when non-empty; ids are `> 0` |
 | `zone_selection` | float | `0.0` | Zone morphing control (0.0-1.0) |
 | `mpe_enabled` | bool | `false` | Master MPE switch; off = standard synth behaviour |
@@ -526,6 +527,21 @@ The `midi_cc` child element contains `val0` through `val127` attributes for per-
 | 0     | Mono    |
 | 1     | Legato  |
 | 2     | Poly    |
+
+### Velocity Curve (`vel_curve`)
+
+3.26+. Remaps the incoming note-on velocity before zone velocity ranges and modulation see it. With `x = velocity / 127`, the output is `round(f(x) * 127)` clamped to 1-127. Ignored while `mpe_enabled` is true (velocity is forced to 127).
+
+| Value | Name    | f(x) |
+|-------|---------|------|
+| 0     | Linear  | `x` |
+| 1     | Soft    | `x^0.7` |
+| 2     | Softer  | `x^0.5` |
+| 3     | Hard    | `x^1.5` |
+| 4     | Harder  | `x^2` |
+| 5     | S-Curve | `x^2 * (3 - 2x)` |
+
+Soft curves reach loud levels with less force, hard curves need more. Out of range values load as clamped to 0-5.
 
 ### Loop Mode (`loop_mode`)
 
