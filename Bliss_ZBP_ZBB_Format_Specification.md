@@ -775,6 +775,64 @@ x = ((seconds - 0.001) / 15.999) ^ (1/4)
 
 Range: 0.001 s (x=0) to 16 s (x=1).
 
+### LFO Rate (`mod_lfoN_rat`)
+
+The LFO phase runs from -1 to +1 (a span of 2) and advances by a per-sample delta. With `mod_lfoN_syn = 0` (Free) the rate is **exponential**, 14 octaves wide:
+
+```
+delta = 0.01 * 2^(-14 * (1 - x))          // per sample, defined at 44100 Hz
+hz    = 44100 * delta / 2
+      = 220.5 * 2^(-14 * (1 - x))
+```
+
+The engine rescales `delta` by `44100 / sampleRate`, so `hz` is independent of the host sample rate. To reconstruct `x`:
+
+```
+x = 1 + log2(hz / 220.5) / 14
+```
+
+Range: ~0.01346 Hz (x=0) to 220.5 Hz (x=1). Default `0.7` = ~12.0 Hz.
+
+With `mod_lfoN_syn = 1` (Sync) the rate is a whole number of 16th-note ticks per cycle:
+
+```
+ticks   = round(1 + (1 - x) * 255)        // 1..256, x=1 is fastest
+cycle   = ticks * (15 * sampleRate / bpm) samples
+```
+
+One tick is a 16th note, so x=1 is one cycle per 16th and x=0 is 256 sixteenths (16 bars of 4/4).
+
+Rate modulation (from envelopes, the other LFO or expression slots) is added to `x` before the mapping and the sum is clamped to 0..1.
+
+### LFO Delay (`mod_lfoN_del`)
+
+Delay holds the LFO output at 0 after note-on, then starts the cycle. Free mode uses a **quartic** curve like envelope times but with **no 1 ms floor**, so x=0 means no delay:
+
+```
+seconds = x^4 * 16.0                      // 0 when x = 0
+x = (seconds / 16.0) ^ (1/4)
+```
+
+Range: 0 s (x=0) to 16 s (x=1). Envelope times use `0.001 + x^4 * 15.999` instead (see above).
+
+In Sync mode the delay is counted in 16th-note ticks:
+
+```
+ticks   = round(1 + x * 255)              // 1..256
+samples = ticks * (15 * sampleRate / bpm)
+```
+
+Note the direction is reversed compared to sync rate: a larger `x` means a longer delay.
+
+### LFO Phase (`mod_lfoN_phs`)
+
+Start phase applied at note-on:
+
+| Value | Meaning |
+|-------|---------|
+| `0.0` to `0.99725` | Retrigger at `x * 360` degrees |
+| `> 0.99725` (default `1.0`) | Free Run: the LFO is not reset on note-on |
+
 ### Envelope Shape (Attack, Decay, Release shape parameters)
 
 Each envelope stage has a `_shp` RTPAR that controls the **curvature** by specifying the y-value at the midpoint of the stage.
