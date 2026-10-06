@@ -335,6 +335,18 @@ struct BlissZone {
     int loopEnd   = 0;
     float loopCrossfadeLen = 0.2f;
 
+    // Cue points and slice loops (3.27+)
+    struct SliceLoop {
+        int index = 0;
+        int mode = -1;               // -1 = follow the zone loop
+        int start = 0;               // relative to the cue position
+        int end = 0;
+        float crossfadeLen = -1.0f;  // < 0 = zone crossfade
+    };
+    int cueStop = 1;
+    std::vector<int> cuePos;
+    std::vector<SliceLoop> sliceLoops;
+
     // Resource groups
     int resGroup = 0;
     int resOffby = 0;
@@ -412,6 +424,28 @@ struct BlissZone {
         loopStart = node.attrInt("loop_start", 0);
         loopEnd   = node.attrInt("loop_end", 0);
         loopCrossfadeLen = node.attrFloat("loop_crossfade_len", 0.2f);
+
+        // Cue points: num_cues plus indexed val attributes on <cue_pos>
+        cueStop = node.attrInt("cue_stop", 1);
+        const int numCues = std::clamp(node.attrInt("num_cues", 0), 0, 128);
+        if (auto* c = node.child("cue_pos"))
+            for (int i = 0; i < numCues; i++)
+                cuePos.push_back(c->attrInt("val" + std::to_string(i), 0));
+
+        // Slice loops (3.27+): only slices that differ from the defaults
+        if (auto* loops = node.child("cue_loops")) {
+            for (auto& c : loops->children) {
+                if (c.tag != "cue_loop") continue;
+                SliceLoop l;
+                l.index = c.attrInt("index", -1);
+                if (l.index < 0 || l.index >= 128) continue;
+                l.mode = c.attrInt("mode", -1);
+                l.start = c.attrInt("start", 0);
+                l.end = c.attrInt("end", 0);
+                l.crossfadeLen = c.attrFloat("crossfade_len", -1.0f);
+                sliceLoops.push_back(l);
+            }
+        }
 
         // Resource groups (attributes)
         resGroup = node.attrInt("res_group", 0);
@@ -552,6 +586,18 @@ void printZone(const BlissZone& z, int index) {
            loopModeName(z.loopMode), z.loopStart, z.loopEnd,
            z.loopCrossfadeLen);
     printf("    Gain:       %d dB   Pan: %d\n", z.mpGain, z.mpPan);
+
+    // Cues and slice loops (absolute positions = cue + relative start/end)
+    if (!z.cuePos.empty()) {
+        printf("    Cues:       %zu  stop=%d\n", z.cuePos.size(), z.cueStop);
+        for (auto& l : z.sliceLoops) {
+            const int cue = (l.index < (int)z.cuePos.size()) ? z.cuePos[(size_t)l.index] : 0;
+            printf("    Slice %02d:   %s  start=%d  end=%d  xfade=%s\n",
+                   l.index, l.mode < 0 ? "Zone Loop" : loopModeName(l.mode),
+                   cue + l.start, cue + l.end,
+                   l.crossfadeLen < 0.0f ? "zone" : std::to_string(l.crossfadeLen).c_str());
+        }
+    }
 
     // Filter
     if (z.flt1Type > 0) {

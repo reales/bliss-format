@@ -1,7 +1,7 @@
 # Bliss ZBP / ZBB File Format Specification
 
 > **Product:** Bliss -- sampler/synthesizer plugin by [discoDSP](https://www.discodsp.com/)
-> **Version documented:** 3.26 (`0x31A00`) -- adds the program velocity curve (3.26), keyswitches, round robins, CC crossfades (3.8), MPE / expression and integer modulation-destination encoding (3.13), CC choke, linked groups, DAC model and One Shot trigger (3.20). Back-compatible with 3.7.4 `0x030704` and earlier.
+> **Version documented:** 3.27 (`0x31B00`) -- adds slice loops and macro slice links (3.27), the program velocity curve (3.26), keyswitches, round robins, CC crossfades (3.8), MPE / expression and integer modulation-destination encoding (3.13), CC choke, linked groups, DAC model and One Shot trigger (3.20). Back-compatible with 3.7.4 `0x030704` and earlier.
 > **Date:** 2026-09-21
 
 ---
@@ -314,6 +314,11 @@ Each `<zone>` element within `<zones>` describes one mapped sample layer. Scalar
   <!-- Cue points (indexed attributes) -->
   <cue_pos val0="0" val1="0" ... val127="0"/>
 
+  <!-- Slice loops (3.27+, written only when a slice has its own loop or crossfade) -->
+  <cue_loops>
+    <cue_loop index="2" mode="1" start="0" end="29249" crossfade_len="-1.0"/>
+  </cue_loops>
+
   <!-- Glide (RTPAR) -->
   <glide value="0.0" sense="0.5"/>
 
@@ -496,6 +501,20 @@ All RTPAR child elements have the format `<name value="..." sense="..."/>`.
 | `efx_chr_lev` | 0.0 | 0.5 | Chorus send level |
 | `efx_del_lev` | 0.0 | 0.5 | Delay send level |
 | `efx_rev_lev` | 0.0 | 0.5 | Reverb send level |
+
+### Slice Loops (`cue_loops`)
+
+3.27+. Each slice (the region from cue `N` to cue `N+1`, or to the end of the sample for the last cue) can have its own loop. The optional `<cue_loops>` child holds one `<cue_loop>` per slice that differs from the defaults; slices without an entry follow the zone loop. The element is omitted when no slice has its own loop or crossfade, and older versions ignore it.
+
+| Attribute | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `index` | int | -- | Cue index, 0-127; entries outside the range are ignored |
+| `mode` | int | `-1` | `-1` = follow the zone loop, else a [Loop Mode](#loop-mode-loop_mode) value |
+| `start` | int | `0` | Loop start in samples, relative to the cue position |
+| `end` | int | `0` | Loop end in samples, relative to the cue position (exclusive, like `loop_end`) |
+| `crossfade_len` | float | `-1.0` | `< 0` = use the zone's `loop_crossfade_len`, else 0.0-1.0 on the same scale |
+
+Positions are relative so the loop moves with the cue when audio before it is cut or inserted. On playback the absolute loop is `cue_pos + start` to `cue_pos + end`, clamped to the slice, and swapped if start > end. A slice with its own loop (mode >= 0 and not OneShot) loops even when `cue_stop` is on, and plays at least up to its loop end. When a slice uses the zone loop, `crossfade_len` still overrides the zone crossfade for that slice.
 
 ### MIDI Input Range Child Elements
 
@@ -893,6 +912,11 @@ A program has 8 macros. Each macro is a child element within `<macros>`:
 | `param_index` | int | Internal parameter index (opaque integer) |
 | `min_value` | float | Macro value 0.0 maps to this parameter value |
 | `max_value` | float | Macro value 1.0 maps to this parameter value |
+| `cue_index` | int | 3.27+. Only for Loop Start / Loop End links: `-1` (absent) = zone loop, `-2` = all slice loops, `0-127` = that slice's loop. Written only when not `-1` |
+
+For slice links (`cue_index` != -1) the forwarded value spans the slice length: 0.0 is the cue position and 1.0 the slice end, and it sets the slice loop's relative `start` or `end`. Only slices with their own loop (`mode` >= 0) respond.
+
+Macro presets saved from the performance editor (`BlissProgramMacros` / `BlissSingleMacro` XML) store the same field as a `cueIndex` attribute on each `<Link>`.
 
 Macros are exposed as MIDI CC mappings via program options (CC indices 66-73 for macros 1-8).
 
