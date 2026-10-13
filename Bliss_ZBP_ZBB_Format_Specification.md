@@ -1,7 +1,7 @@
 # Bliss ZBP / ZBB File Format Specification
 
 > **Product:** Bliss -- sampler/synthesizer plugin by [discoDSP](https://www.discodsp.com/)
-> **Version documented:** 3.27 (`0x31B00`) -- adds slice loops and macro slice links (3.27), the program velocity curve (3.26), keyswitches, round robins, CC crossfades (3.8), MPE / expression and integer modulation-destination encoding (3.13), CC choke, linked groups, DAC model and One Shot trigger (3.20). Back-compatible with 3.7.4 `0x030704` and earlier.
+> **Version documented:** 3.28 (`0x31C00`) -- adds shared zone samples (`sample_ref`) and FLAC-coded edited waveforms (3.28), slice loops and macro slice links (3.27), the program velocity curve (3.26), keyswitches, round robins, CC crossfades (3.8), MPE / expression and integer modulation-destination encoding (3.13), CC choke, linked groups, DAC model and One Shot trigger (3.20). Back-compatible with 3.7.4 `0x030704` and earlier.
 > **Date:** 2026-09-21
 
 ---
@@ -75,6 +75,7 @@ program_000/zone_NNN.flac      <- Audio for zone N
 - A program may contain **0 to 128 zones**.
 - If a zone references an external sample file (`path` attribute is set), the FLAC audio entry for that zone may be omitted and the original file on disk is used.
 - Zones with destructive edits (e.g. time-stretch, reversal) store a base64-encoded fallback waveform inside the XML under an `edited_waveform` element.
+- 3.28+: zones that play the same sample are saved once. The first zone keeps its `zone_XXX.flac` entry; every later zone using that sample carries a `sample_ref` attribute with the index of that first zone and has **no audio entry of its own**. The same applies per program inside ZBB banks (the index always refers to a zone of the same program).
 
 ---
 
@@ -456,6 +457,7 @@ Each `<zone>` element within `<zones>` describes one mapped sample layer. Scalar
 | `efx_del_enable` | int | `1` | Delay send enable |
 | `efx_rev_enable` | int | `1` | Reverb send enable |
 | `has_destructive_edits` | bool | `false` | Has destructive sample edits |
+| `sample_ref` | int | `-1` (absent) | 3.28+. Index of an earlier zone in the same program whose audio this zone plays; the zone has no FLAC entry of its own. Written only when the sample is shared |
 
 ### Zone Child Elements (RTPAR)
 
@@ -1130,13 +1132,15 @@ On load Bliss rewrites the program version to the current one and migrates legac
 
 1. **Macro parameter indices** (`param_index` in links) are internal opaque integers determined by Bliss's parameter ordering. A complete mapping table is not published.
 
-2. **Destructive edits / base64 waveform fallback:** When `has_destructive_edits` is `true` (or `1`), the zone may contain an `edited_waveform` element with base64-encoded raw PCM data as a fallback.
+2. **Destructive edits / base64 waveform fallback:** When `has_destructive_edits` is `true` (or `1`), the zone may contain an `edited_waveform` element (attributes `channels`, `samples`, `sample_rate`) as a fallback. Up to 3.27 it holds one `channel_N` attribute per channel with base64 raw 32-bit float PCM. From 3.28 it has `codec="flac"` and a single `data` attribute with a base64 24-bit FLAC file of all channels.
 
 3. **Morph/Sense values:** The `sense` attribute inside RTPAR elements is specific to Bliss's morph system and has no standard equivalent in SFZ/SF2/Kontakt. It can be safely ignored on import.
 
 4. **Per-zone output routing:** `audio_out` maps zones to up to 5 output buses. Default to main/stereo output.
 
 5. **External sample references:** If `path` is set and no FLAC is embedded, the converter needs access to the referenced file on disk.
+
+6. **Shared samples (3.28+):** A zone with `sample_ref` has no audio entry. Resolve it by loading the referenced zone's `zone_XXX.flac`. Readers older than 3.28 do not know the attribute; Bliss itself refuses any program whose `version` is newer than the running release.
 
 6. **FLAC bit depth:** On demo/unlicensed builds, samples are stored as 16-bit; on licensed builds, 24-bit. Always check the FLAC file header for actual bit depth.
 

@@ -364,6 +364,7 @@ struct BlissZone {
 
     // CC choke (3.20+)
     int chokeCc = -1;
+    int sampleRef = -1;   // 3.28+: earlier zone whose audio this zone plays
     int chokeLo = 64;
     int chokeHi = 127;
 
@@ -460,6 +461,7 @@ struct BlissZone {
         lorand = node.attrFloat("lorand", 0.0f);
         hirand = node.attrFloat("hirand", 1.0f);
         chokeCc = node.attrInt("choke_cc", -1);
+        sampleRef = node.attrInt("sample_ref", -1);
         chokeLo = node.attrInt("choke_lo", 64);
         chokeHi = node.attrInt("choke_hi", 127);
 
@@ -657,6 +659,8 @@ void printZone(const BlissZone& z, int index) {
     // CC choke
     if (z.chokeCc >= 0)
         printf("    Choke:      CC %d  window %d-%d\n", z.chokeCc, z.chokeLo, z.chokeHi);
+    if (z.sampleRef >= 0)
+        printf("    Sample:     shared with zone %d (no audio entry)\n", z.sampleRef);
 
     // Source path
     if (!z.path.empty())
