@@ -506,6 +506,9 @@ struct BlissProgram {
     int         velCurve = 0;       // 3.26+: note-on velocity curve
     int         numZones = 0;
     std::string linkedGroups;   // 3.20+: comma-separated res_group ids
+    std::string sourceFilePath;  // original file when the audio comes from elsewhere
+    int         sourceItem   = -1;    // 3.28+: program index inside a multi-program source
+    bool        lazyExternal = false; // 3.28+: unloaded stub, imported when selected
     std::vector<BlissZone> zones;
 
     void parse(const XmlNode& programNode) {
@@ -514,6 +517,9 @@ struct BlissProgram {
         name     = programNode.attr("name", "---");
         plyMode  = programNode.attrInt("ply_mode", 2);
         velCurve = programNode.attrInt("vel_curve", 0);
+        sourceFilePath = programNode.attr("sourceFilePath", "");
+        sourceItem     = programNode.attrInt("sourceItem", -1);
+        lazyExternal   = programNode.attr("lazy_external", "0") == "1" || programNode.attr("lazy_external", "") == "true";
         numZones = programNode.attrInt("num_zones", 0);
         linkedGroups = programNode.attr("linked_groups", "");
 
@@ -679,6 +685,11 @@ void printProgram(const BlissProgram& prog, int index = -1) {
            prog.version);
     printf("  Play mode: %s\n", playModeName(prog.plyMode));
     printf("  Velocity curve: %s\n", velocityCurveName(prog.velCurve));
+    if (!prog.sourceFilePath.empty())
+        printf("  Source:         %s%s\n", prog.sourceFilePath.c_str(),
+               prog.sourceItem >= 0 ? (" (program " + std::to_string(prog.sourceItem) + ")").c_str() : "");
+    if (prog.lazyExternal)
+        printf("  Stub:           loads from the source when selected\n");
     if (!prog.linkedGroups.empty())
         printf("  Linked groups: %s\n", prog.linkedGroups.c_str());
     printf("  Zones:    %d\n", static_cast<int>(prog.zones.size()));

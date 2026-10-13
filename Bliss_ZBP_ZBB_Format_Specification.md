@@ -223,6 +223,20 @@ All scalar properties are stored as **XML attributes** on the `<program>` elemen
 | `mpe_rest_y` | int | `0` | Y axis rest model: 0=Bottom, 1=Center |
 | `mpe_rest_z` | int | `0` | Z axis rest model: 0=Bottom, 1=Center |
 
+#### Source References and Stubs
+
+Programs that came from another file, and placeholders for programs not loaded yet, carry these attributes. They appear in plugin state and can appear in saved ZBB banks.
+
+| Attribute | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `useExternalSource` | bool | `false` | The program's audio comes from `sourceFilePath` instead of this file; the `<zones>` element holds parameter overrides applied after the source is loaded |
+| `sourceFilePath` | string | absent | Full path of the original file (SFZ, GIG, SF2, Akai ISO, ZBP, ...) |
+| `sourceItem` | int | `-1` (absent) | 3.28+. Which program of a multi-program source file this is: GIG instrument, SF2 preset or Akai ISO program index. Absent when the source file is a single program |
+| `lazy_external` | bool | `false` | 3.28+. Unloaded stub: only `name`, `sourceFilePath` and `sourceItem` are meaningful and there are no zones. The program is imported from the source when it is first selected |
+| `lazy_stub` | bool | `false` | Name-only placeholder for a program whose data lives in the referenced ZBB bank (`bankFilePath` in the bank status) |
+| `keep_samples_in_state` | bool | `false` | 3.28+. The program's samples are embedded even when samples are not saved with the plugin state (used for Akai ISO programs, so a project still plays when the image is gone) |
+| `keptSourceFilePath` | string | absent | 3.28+. With `keep_samples_in_state`: the file the program was imported from. Informational, the embedded samples are used for loading |
+
 The six expression slots are stored as an `<expression>` child element (see MPE / Expression). All MPE attributes are optional; absent attributes default as above, so pre-3.13 presets load as non-MPE with no expression routing.
 
 ---
