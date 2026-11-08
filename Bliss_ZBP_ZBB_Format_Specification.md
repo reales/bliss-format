@@ -1,8 +1,8 @@
 # Bliss ZBP / ZBB File Format Specification
 
 > **Product:** Bliss -- sampler/synthesizer plugin by [discoDSP](https://www.discodsp.com/)
-> **Version documented:** 3.28 (`0x31C00`) -- adds shared zone samples (`sample_ref`) and FLAC-coded edited waveforms (3.28), slice loops and macro slice links (3.27), the program velocity curve (3.26), keyswitches, round robins, CC crossfades (3.8), MPE / expression and integer modulation-destination encoding (3.13), CC choke, linked groups, DAC model and One Shot trigger (3.20). Back-compatible with 3.7.4 `0x030704` and earlier.
-> **Date:** 2026-09-21
+> **Version documented:** 3.29 (`0x31D00`) -- adds program category and key tags (3.29), shared zone samples (`sample_ref`) and FLAC-coded edited waveforms (3.28), slice loops and macro slice links (3.27), the program velocity curve (3.26), keyswitches, round robins, CC crossfades (3.8), MPE / expression and integer modulation-destination encoding (3.13), CC choke, linked groups, DAC model and One Shot trigger (3.20). Back-compatible with 3.7.4 `0x030704` and earlier.
+> **Date:** 2026-11-08
 
 ---
 
@@ -213,6 +213,10 @@ All scalar properties are stored as **XML attributes** on the `<program>` elemen
 | `num_zones` | int | `0` | Number of zones in this program |
 | `ply_mode` | int | `2` | Play mode: 0=Mono, 1=Legato, 2=Poly |
 | `vel_curve` | int | `0` | 3.26+. Note-on velocity curve, see [Velocity Curve](#velocity-curve-vel_curve). Written only when not Linear |
+| `category` | string | absent (`None`) | 3.29+. Main category tag name, see [Program Category](#program-category-category). Matched case-insensitively; unknown names load as `None`. Written only when not `None` |
+| `category2` | string | absent (`None`) | 3.29+. First secondary category tag, same names as `category`. Written only when not `None` |
+| `category3` | string | absent (`None`) | 3.29+. Second secondary category tag. Written only when not `None` |
+| `key` | string | absent | 3.29+. Musical key tag, reserved. Free text up to 8 characters (e.g. `"C"`, `"F#m"`); Bliss stores it but does not use it yet. Written only when non-empty |
 | `linked_groups` | string | absent | 3.20+. Comma-separated list of linked `res_group` ids (e.g. `"1,3"`). Zone edits apply to all zones sharing a linked group. Written only when non-empty; ids are `> 0` |
 | `zone_selection` | float | `0.0` | Zone morphing control (0.0-1.0) |
 | `mpe_enabled` | bool | `false` | Master MPE switch; off = standard synth behaviour |
@@ -577,6 +581,34 @@ The `midi_cc` child element contains `val0` through `val127` attributes for per-
 | 5     | S-Curve | `x^2 * (3 - 2x)` |
 
 Soft curves reach loud levels with less force, hard curves need more. Out of range values load as clamped to 0-5.
+
+### Program Category (`category`)
+
+3.29+. Stored by name, so the order below is informational. Values 0-15 are the TED-8 category list in the same order.
+
+| Value | Name       |
+|-------|------------|
+| 0     | None       |
+| 1     | Pad        |
+| 2     | Lead       |
+| 3     | Bass       |
+| 4     | Poly       |
+| 5     | Keys       |
+| 6     | String     |
+| 7     | Pluck      |
+| 8     | Bell       |
+| 9     | Arp        |
+| 10    | Brass      |
+| 11    | Voice      |
+| 12    | Organ      |
+| 13    | Perc       |
+| 14    | Tuned Perc |
+| 15    | SFX        |
+| 16    | Loop       |
+| 17    | Drums      |
+| 18    | Piano      |
+| 19    | Guitar     |
+| 20    | Wind       |
 
 ### Loop Mode (`loop_mode`)
 

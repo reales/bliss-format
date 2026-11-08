@@ -504,6 +504,8 @@ struct BlissProgram {
     int         version  = 0;
     int         plyMode  = 2;
     int         velCurve = 0;       // 3.26+: note-on velocity curve
+    std::string category[3];        // 3.29+: main + 2 secondary category tags, empty = None
+    std::string key;                // 3.29+: musical key tag (reserved)
     int         numZones = 0;
     std::string linkedGroups;   // 3.20+: comma-separated res_group ids
     std::string sourceFilePath;  // original file when the audio comes from elsewhere
@@ -517,6 +519,10 @@ struct BlissProgram {
         name     = programNode.attr("name", "---");
         plyMode  = programNode.attrInt("ply_mode", 2);
         velCurve = programNode.attrInt("vel_curve", 0);
+        category[0] = programNode.attr("category", "");
+        category[1] = programNode.attr("category2", "");
+        category[2] = programNode.attr("category3", "");
+        key = programNode.attr("key", "");
         sourceFilePath = programNode.attr("sourceFilePath", "");
         sourceItem     = programNode.attrInt("sourceItem", -1);
         lazyExternal   = programNode.attr("lazy_external", "0") == "1" || programNode.attr("lazy_external", "") == "true";
@@ -685,6 +691,9 @@ void printProgram(const BlissProgram& prog, int index = -1) {
            prog.version);
     printf("  Play mode: %s\n", playModeName(prog.plyMode));
     printf("  Velocity curve: %s\n", velocityCurveName(prog.velCurve));
+    for (int i = 0; i < 3; ++i)
+        if (!prog.category[i].empty()) printf("  Category%s: %s\n", i == 0 ? "" : i == 1 ? " 2" : " 3", prog.category[i].c_str());
+    if (!prog.key.empty()) printf("  Key: %s\n", prog.key.c_str());
     if (!prog.sourceFilePath.empty())
         printf("  Source:         %s%s\n", prog.sourceFilePath.c_str(),
                prog.sourceItem >= 0 ? (" (program " + std::to_string(prog.sourceItem) + ")").c_str() : "");
