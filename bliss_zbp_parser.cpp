@@ -505,7 +505,7 @@ struct BlissProgram {
     int         plyMode  = 2;
     int         velCurve = 0;       // 3.26+: note-on velocity curve
     std::string category[3];        // 3.29+: main + 2 secondary category tags, empty = None
-    std::string key;                // 3.29+: musical key tag (reserved)
+    std::string key;                // 3.29+: musical key tag, e.g. "C", "F#m" (no octave)
     int         numZones = 0;
     std::string linkedGroups;   // 3.20+: comma-separated res_group ids
     std::string sourceFilePath;  // original file when the audio comes from elsewhere

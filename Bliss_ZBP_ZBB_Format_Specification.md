@@ -216,7 +216,7 @@ All scalar properties are stored as **XML attributes** on the `<program>` elemen
 | `category` | string | absent (`None`) | 3.29+. Main category tag name, see [Program Category](#program-category-category). Matched case-insensitively; unknown names load as `None`. Written only when not `None` |
 | `category2` | string | absent (`None`) | 3.29+. First secondary category tag, same names as `category`. Written only when not `None` |
 | `category3` | string | absent (`None`) | 3.29+. Second secondary category tag. Written only when not `None` |
-| `key` | string | absent | 3.29+. Musical key tag, reserved. Free text up to 8 characters (e.g. `"C"`, `"F#m"`); Bliss stores it but does not use it yet. Written only when non-empty |
+| `key` | string | absent | 3.29+. Musical key tag without octave, see [Musical Key](#musical-key-key). Written only when set |
 | `linked_groups` | string | absent | 3.20+. Comma-separated list of linked `res_group` ids (e.g. `"1,3"`). Zone edits apply to all zones sharing a linked group. Written only when non-empty; ids are `> 0` |
 | `zone_selection` | float | `0.0` | Zone morphing control (0.0-1.0) |
 | `mpe_enabled` | bool | `false` | Master MPE switch; off = standard synth behaviour |
@@ -609,6 +609,17 @@ Soft curves reach loud levels with less force, hard curves need more. Out of ran
 | 18    | Piano      |
 | 19    | Guitar     |
 | 20    | Wind       |
+
+### Musical Key (`key`)
+
+3.29+. Tonic plus mode, no octave (each zone's root key carries the pitch). Bliss writes one of these 24 spellings:
+
+| Mode  | Values |
+|-------|--------|
+| Major | `C` `C#` `D` `Eb` `E` `F` `F#` `G` `Ab` `A` `Bb` `B` |
+| Minor | `Cm` `C#m` `Dm` `Ebm` `Em` `Fm` `F#m` `Gm` `G#m` `Am` `Bbm` `Bm` |
+
+Readers should accept either accidental (`#`/`b`, also `♯`/`♭`), a case-insensitive letter, and the suffixes `m`, `min`, `minor` (minor) or none, `M`, `maj`, `major` (major). Bliss normalizes on load, so `"Db"` saves back as `"C#"` and `"A minor"` as `"Am"`. Anything else loads as no key.
 
 ### Loop Mode (`loop_mode`)
 
