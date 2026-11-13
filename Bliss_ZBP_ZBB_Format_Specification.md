@@ -185,7 +185,7 @@ All scalar properties are stored as **XML attributes** on the `<program>` elemen
 
   <macros>
     <macro1 name="Cutoff" num_links="1">
-      <value value="0.5" sense="0.5"/>
+      <value value="0.5" sense="0.0"/>
       <links>
         <link1 zone_index="0" param_index="15" min_value="0.0" max_value="1.0"/>
         <!-- more links... -->
@@ -339,58 +339,58 @@ Each `<zone>` element within `<zones>` describes one mapped sample layer. Scalar
   </cue_loops>
 
   <!-- Glide (RTPAR) -->
-  <glide value="0.0" sense="0.5"/>
+  <glide value="0.0" sense="0.0"/>
 
   <!-- Filter 1 (RTPAR children) -->
-  <flt1_cut_frq value="1.0" sense="0.5"/>
-  <flt1_res_amt value="0.0" sense="0.5"/>
-  <flt1_drv_amt value="0.0" sense="0.5"/>
+  <flt1_cut_frq value="1.0" sense="0.0"/>
+  <flt1_res_amt value="0.0" sense="0.0"/>
+  <flt1_drv_amt value="0.0" sense="0.0"/>
 
   <!-- Filter 2 (RTPAR children) -->
-  <flt2_cut_frq value="1.0" sense="0.5"/>
-  <flt2_res_amt value="0.0" sense="0.5"/>
-  <flt2_drv_amt value="0.0" sense="0.5"/>
+  <flt2_cut_frq value="1.0" sense="0.0"/>
+  <flt2_res_amt value="0.0" sense="0.0"/>
+  <flt2_drv_amt value="0.0" sense="0.0"/>
 
   <!-- Amplitude Envelope ADSR (RTPAR children) -->
-  <amp_env_att value="0.0" sense="0.5"/>
-  <amp_env_att_shp value="0.5" sense="0.5"/>
-  <amp_env_dec value="0.5" sense="0.5"/>
-  <amp_env_dec_shp value="0.5" sense="0.5"/>
-  <amp_env_sus value="1.0" sense="0.5"/>
-  <amp_env_rel value="0.2" sense="0.5"/>
-  <amp_env_rel_shp value="0.5" sense="0.5"/>
-  <amp_env_amt value="1.0" sense="0.5"/>
-  <amp_env_dest1amt value="0.0" sense="0.5"/>
-  <amp_env_dest2amt value="0.0" sense="0.5"/>
+  <amp_env_att value="0.0" sense="0.0"/>
+  <amp_env_att_shp value="0.5" sense="0.0"/>
+  <amp_env_dec value="0.5" sense="0.0"/>
+  <amp_env_dec_shp value="0.5" sense="0.0"/>
+  <amp_env_sus value="1.0" sense="0.0"/>
+  <amp_env_rel value="0.2" sense="0.0"/>
+  <amp_env_rel_shp value="0.5" sense="0.0"/>
+  <amp_env_amt value="1.0" sense="0.0"/>
+  <amp_env_dest1amt value="0.0" sense="0.0"/>
+  <amp_env_dest2amt value="0.0" sense="0.0"/>
 
   <!-- Modulation Envelope ADSR (RTPAR children) -->
-  <mod_env_att value="0.0" sense="0.5"/>
-  <mod_env_att_shp value="0.5" sense="0.5"/>
-  <mod_env_dec value="0.5" sense="0.5"/>
-  <mod_env_dec_shp value="0.5" sense="0.5"/>
-  <mod_env_sus value="0.5" sense="0.5"/>
-  <mod_env_rel value="0.1" sense="0.5"/>
-  <mod_env_rel_shp value="0.5" sense="0.5"/>
-  <mod_env_amt value="1.0" sense="0.5"/>
-  <mod_env_dest1amt value="0.0" sense="0.5"/>
-  <mod_env_dest2amt value="0.0" sense="0.5"/>
+  <mod_env_att value="0.0" sense="0.0"/>
+  <mod_env_att_shp value="0.5" sense="0.0"/>
+  <mod_env_dec value="0.5" sense="0.0"/>
+  <mod_env_dec_shp value="0.5" sense="0.0"/>
+  <mod_env_sus value="0.5" sense="0.0"/>
+  <mod_env_rel value="0.1" sense="0.0"/>
+  <mod_env_rel_shp value="0.5" sense="0.0"/>
+  <mod_env_amt value="1.0" sense="0.0"/>
+  <mod_env_dest1amt value="0.0" sense="0.0"/>
+  <mod_env_dest2amt value="0.0" sense="0.0"/>
 
   <!-- LFO 1 (RTPAR children) -->
-  <mod_lfo1_del value="0.0" sense="0.5"/>
-  <mod_lfo1_phs value="1.0" sense="0.5"/>
-  <mod_lfo1_rat value="0.7" sense="0.5"/>
-  <mod_lfo1_amt value="0.0" sense="0.5"/>
+  <mod_lfo1_del value="0.0" sense="0.0"/>
+  <mod_lfo1_phs value="1.0" sense="0.0"/>
+  <mod_lfo1_rat value="0.7" sense="0.0"/>
+  <mod_lfo1_amt value="0.0" sense="0.0"/>
 
   <!-- LFO 2 (RTPAR children) -->
-  <mod_lfo2_del value="0.0" sense="0.5"/>
-  <mod_lfo2_phs value="1.0" sense="0.5"/>
-  <mod_lfo2_rat value="0.7" sense="0.5"/>
-  <mod_lfo2_amt value="0.0" sense="0.5"/>
+  <mod_lfo2_del value="0.0" sense="0.0"/>
+  <mod_lfo2_phs value="1.0" sense="0.0"/>
+  <mod_lfo2_rat value="0.7" sense="0.0"/>
+  <mod_lfo2_amt value="0.0" sense="0.0"/>
 
   <!-- Per-zone effect sends (RTPAR children) -->
-  <efx_chr_lev value="0.0" sense="0.5"/>
-  <efx_del_lev value="0.0" sense="0.5"/>
-  <efx_rev_lev value="0.0" sense="0.5"/>
+  <efx_chr_lev value="0.0" sense="0.0"/>
+  <efx_del_lev value="0.0" sense="0.0"/>
+  <efx_rev_lev value="0.0" sense="0.0"/>
 
 </zone>
 ```
@@ -446,7 +446,7 @@ Each `<zone>` element within `<zones>` describes one mapped sample layer. Scalar
 | `pitch_mode` | int | `0` | 0=Resample, 1=PitchShift |
 | `sys_pit_rng` | float | `0.0833` | Pitch bend range (~200/2400) |
 | `stretch_factor` | float | `1.0` | Time-stretch multiplier |
-| `vel_mod` | float | `1.0` | Velocity modulation amount |
+| `vel_mod` | float | `1.0` | How much velocity adds to the morph source, 0.0-1.0, see [Morph](#morph-sense). Read as 1.0 when absent; new zones write 0.0 |
 | `vel_amp` | float | `1.0` | Velocity amplitude scaling (0.0-1.0) |
 | `glide_auto` | int | `0` | 0=Free, 1=Auto |
 | `unison_enable` | int | `0` | 0=off, 1=on |
@@ -483,44 +483,44 @@ All RTPAR child elements have the format `<name value="..." sense="..."/>`.
 
 | Element | Default value | Default sense | Description |
 |---------|---------------|---------------|-------------|
-| `glide` | 0.0 | 0.5 | Glide/portamento time |
-| `flt1_cut_frq` | 1.0 | 0.5 | Filter 1 cutoff (0.0-1.0) |
-| `flt1_res_amt` | 0.0 | 0.5 | Filter 1 resonance |
-| `flt1_drv_amt` | 0.0 | 0.5 | Filter 1 drive |
-| `flt2_cut_frq` | 1.0 | 0.5 | Filter 2 cutoff |
-| `flt2_res_amt` | 0.0 | 0.5 | Filter 2 resonance |
-| `flt2_drv_amt` | 0.0 | 0.5 | Filter 2 drive |
-| `amp_env_att` | 0.0 | 0.5 | Amp envelope attack |
-| `amp_env_att_shp` | 0.5 | 0.5 | Attack shape |
-| `amp_env_dec` | 0.5 | 0.5 | Amp envelope decay |
-| `amp_env_dec_shp` | 0.5 | 0.5 | Decay shape |
-| `amp_env_sus` | 1.0 | 0.5 | Amp envelope sustain |
-| `amp_env_rel` | 0.2 | 0.5 | Amp envelope release |
-| `amp_env_rel_shp` | 0.5 | 0.5 | Release shape |
-| `amp_env_amt` | 1.0 | 0.5 | Amp envelope amount |
-| `amp_env_dest1amt` | 0.0 | 0.5 | Dest 1 modulation amount |
-| `amp_env_dest2amt` | 0.0 | 0.5 | Dest 2 modulation amount |
-| `mod_env_att` | 0.0 | 0.5 | Mod envelope attack |
-| `mod_env_att_shp` | 0.5 | 0.5 | Attack shape |
-| `mod_env_dec` | 0.5 | 0.5 | Mod envelope decay |
-| `mod_env_dec_shp` | 0.5 | 0.5 | Decay shape |
-| `mod_env_sus` | 0.5 | 0.5 | Mod envelope sustain |
-| `mod_env_rel` | 0.1 | 0.5 | Mod envelope release |
-| `mod_env_rel_shp` | 0.5 | 0.5 | Release shape |
-| `mod_env_amt` | 1.0 | 0.5 | Mod envelope amount |
-| `mod_env_dest1amt` | 0.0 | 0.5 | Dest 1 modulation amount |
-| `mod_env_dest2amt` | 0.0 | 0.5 | Dest 2 modulation amount |
-| `mod_lfo1_del` | 0.0 | 0.5 | LFO 1 delay |
-| `mod_lfo1_phs` | 1.0 | 0.5 | LFO 1 phase |
-| `mod_lfo1_rat` | 0.7 | 0.5 | LFO 1 rate |
-| `mod_lfo1_amt` | 0.0 | 0.5 | LFO 1 amount |
-| `mod_lfo2_del` | 0.0 | 0.5 | LFO 2 delay |
-| `mod_lfo2_phs` | 1.0 | 0.5 | LFO 2 phase |
-| `mod_lfo2_rat` | 0.7 | 0.5 | LFO 2 rate |
-| `mod_lfo2_amt` | 0.0 | 0.5 | LFO 2 amount |
-| `efx_chr_lev` | 0.0 | 0.5 | Chorus send level |
-| `efx_del_lev` | 0.0 | 0.5 | Delay send level |
-| `efx_rev_lev` | 0.0 | 0.5 | Reverb send level |
+| `glide` | 0.0 | 0.0 | Glide/portamento time |
+| `flt1_cut_frq` | 1.0 | 0.0 | Filter 1 cutoff (0.0-1.0) |
+| `flt1_res_amt` | 0.0 | 0.0 | Filter 1 resonance |
+| `flt1_drv_amt` | 0.0 | 0.0 | Filter 1 drive |
+| `flt2_cut_frq` | 1.0 | 0.0 | Filter 2 cutoff |
+| `flt2_res_amt` | 0.0 | 0.0 | Filter 2 resonance |
+| `flt2_drv_amt` | 0.0 | 0.0 | Filter 2 drive |
+| `amp_env_att` | 0.0 | 0.0 | Amp envelope attack |
+| `amp_env_att_shp` | 0.5 | 0.0 | Attack shape |
+| `amp_env_dec` | 0.5 | 0.0 | Amp envelope decay |
+| `amp_env_dec_shp` | 0.5 | 0.0 | Decay shape |
+| `amp_env_sus` | 1.0 | 0.0 | Amp envelope sustain |
+| `amp_env_rel` | 0.2 | 0.0 | Amp envelope release |
+| `amp_env_rel_shp` | 0.5 | 0.0 | Release shape |
+| `amp_env_amt` | 1.0 | 0.0 | Amp envelope amount |
+| `amp_env_dest1amt` | 0.0 | 0.0 | Dest 1 modulation amount |
+| `amp_env_dest2amt` | 0.0 | 0.0 | Dest 2 modulation amount |
+| `mod_env_att` | 0.0 | 0.0 | Mod envelope attack |
+| `mod_env_att_shp` | 0.5 | 0.0 | Attack shape |
+| `mod_env_dec` | 0.5 | 0.0 | Mod envelope decay |
+| `mod_env_dec_shp` | 0.5 | 0.0 | Decay shape |
+| `mod_env_sus` | 0.5 | 0.0 | Mod envelope sustain |
+| `mod_env_rel` | 0.1 | 0.0 | Mod envelope release |
+| `mod_env_rel_shp` | 0.5 | 0.0 | Release shape |
+| `mod_env_amt` | 1.0 | 0.0 | Mod envelope amount |
+| `mod_env_dest1amt` | 0.0 | 0.0 | Dest 1 modulation amount |
+| `mod_env_dest2amt` | 0.0 | 0.0 | Dest 2 modulation amount |
+| `mod_lfo1_del` | 0.0 | 0.0 | LFO 1 delay |
+| `mod_lfo1_phs` | 1.0 | 0.0 | LFO 1 phase |
+| `mod_lfo1_rat` | 0.7 | 0.0 | LFO 1 rate |
+| `mod_lfo1_amt` | 0.0 | 0.0 | LFO 1 amount |
+| `mod_lfo2_del` | 0.0 | 0.0 | LFO 2 delay |
+| `mod_lfo2_phs` | 1.0 | 0.0 | LFO 2 phase |
+| `mod_lfo2_rat` | 0.7 | 0.0 | LFO 2 rate |
+| `mod_lfo2_amt` | 0.0 | 0.0 | LFO 2 amount |
+| `efx_chr_lev` | 0.0 | 0.0 | Chorus send level |
+| `efx_del_lev` | 0.0 | 0.0 | Delay send level |
+| `efx_rev_lev` | 0.0 | 0.0 | Reverb send level |
 
 ### Slice Loops (`cue_loops`)
 
@@ -750,13 +750,13 @@ Since 3.18, realtime playback always uses High; the stored value is ignored on l
 Used for modulatable parameters. Both fields are stored as **attributes** on a child element:
 
 ```xml
-<flt1_cut_frq value="0.5" sense="0.5"/>
+<flt1_cut_frq value="0.5" sense="0.0"/>
 ```
 
 | Attribute | Type | Description |
 |-----------|------|-------------|
 | `value` | float | Parameter value, normalized 0.0-1.0 unless documented otherwise |
-| `sense` | float | Morph sensitivity; 0.5 = neutral center |
+| `sense` | float | Morph depth, bipolar -1.0 to +1.0. **0.0 = no morph** (the default). See [Morph](#morph-sense) |
 
 ### RTDST -- Modulation Destination
 
@@ -796,25 +796,52 @@ index = floor(value * 14)       (decode)
 
 This applies to the zone attributes `amp_env_dest1`, `amp_env_dest2`, `mod_env_dest1`, `mod_env_dest2`, `mod_lfo1_dest`, `mod_lfo2_dest`, and to the program-level `expression` slot destinations (see MPE / Expression).
 
-### Modulation Amount (`amp_env_dest1amt`, `amp_env_dest2amt`, `mod_env_dest1amt`, `mod_env_dest2amt`)
+### Morph (`sense`)
 
-These RTPAR fields are **center-biased** amount knobs. The stored `value` (0.0-1.0) is normalized as:
+Every RTPAR can be moved by one per-voice morph source, built from the mod wheel and velocity:
 
-- **0.5** = no modulation (center / default)
-- **< 0.5** = negative modulation depth
-- **> 0.5** = positive modulation depth
+```
+x         = clamp(modwheel + (velocity / 127) * vel_mod, 0, 1)
+effective = (x == 0) ? value : clamp(value + sense * x, 0, 1)
+```
 
-The engine converts the stored value to a bipolar or unipolar working value depending on the destination:
+- `modwheel` is CC 1 as 0.0-1.0 (`cc / 127`).
+- `velocity` is the note-on velocity after the program velocity curve.
+- `vel_mod` (zone attribute, 0.0-1.0) is how much velocity adds to the wheel. With `vel_mod = 0` only the wheel morphs.
+- `sense` is stored as-is in the file, in the range -1.0 to +1.0. `0.0` = no morph, `+1.0` = full wheel adds up to +1.0 to the normalized value, `-1.0` pulls it toward 0.0. The result is clamped to 0.0-1.0.
+- Morph is applied to the stored normalized `value` before any other mapping (Hz, time curves, centre bias below).
+- Filters, envelope and LFO amounts, LFO rate and delay, and glide follow the wheel while the note plays. Envelope times and shapes, LFO phase and effect sends are read at note-on.
+- Bliss's UI and host automation show sense as `(sense + 1) / 2`, so the knob centre (0.5) is neutral there. That display value is never written to the file.
+- Macro `value` elements use the same RTPAR layout; their `sense` is unused and written as `0.0`.
 
-| Destination | Conversion | Working range | Effective depth |
-|-------------|-----------|---------------|-----------------|
-| Pitch       | `(value - 0.5)` then `* 4.0` | +-2.0 | **+-2 octaves** at full swing |
-| Filter 1/2 Freq | `(value - 0.5)` then `* 4.0` | +-2.0 | Full filter sweep |
-| Filter 1/2 Reso/Drive | `(value - 0.5)` then `* 4.0` | +-2.0 | Full range |
-| LFO 1/2 Rate | `(value - 0.5)` then `* 4.0` | +-2.0 | Full rate range |
-| Loop Start/End | `(value - 0.5)` then `* 4.0` | +-2.0 | Full sample range |
-| Pan         | `(value - 0.5)` then `* 4.0` | +-2.0 | Full pan range |
-| Amp         | `value * 0.5` | 0.0 to 0.5 | Additive gain (unipolar) |
+To import into a format without morph, read `value` and ignore `sense`. To render a preset as heard at a given wheel position and velocity, compute `effective` first.
+
+### Modulation Amount (`amp_env_dest1amt`, `amp_env_dest2amt`, `mod_env_dest1amt`, `mod_env_dest2amt`, `mod_lfo1_amt`, `mod_lfo2_amt`)
+
+The amount of each envelope and LFO route is one RTPAR whose meaning depends on the route's destination (`amp_env_destN`, `mod_env_destN`, `mod_lfoN_dest`):
+
+| Destination | Amount mapping | `value` for no modulation |
+|-------------|----------------|---------------------------|
+| None | ignored, the route is off (an LFO with dest None is not even run) | any (files store `0.0`) |
+| Amp | unipolar: `depth = value * 0.5` | `0.0` |
+| every other destination | centre-biased: `depth = value - 0.5` (-0.5 to +0.5) | `0.5` |
+
+`value` is taken after morph. Sources: envelopes run 0.0 to 1.0, LFOs run -1.0 to +1.0 (all waveforms). Each route adds `source * depth * scale` to the destination:
+
+| Destination | Scale | Full amount (`value` 0.0 or 1.0, source at peak) |
+|-------------|-------|---------------------------------------------------|
+| Pitch | `* 4.0` octaves | +-2 octaves. `value = 0.0` is the same depth as 1.0 with the sign flipped |
+| Filter 1/2 Freq | added to the normalized cutoff (0-1) before the square-law Hz curve | +-0.5 of the cutoff range |
+| Filter 1/2 Reso, Drive | added to the normalized value | +-0.5 |
+| LFO 1/2 Rate | added to the normalized rate | +-0.5 |
+| Loop Start / End | `* (loop_end - loop_start)` samples | +-half the loop length |
+| Pan | added to pan (0 = left, 0.5 = centre, 1 = right) | +-0.5, hard left to hard right |
+| Amp (LFO) | gain `= (1 - depth) - lfo * depth` | `value = 1.0`: gain swings 0.0 to 1.0 (full tremolo) |
+| Amp (envelopes) | not applied in the current engine | no effect |
+
+All sums are clamped to the destination's 0.0-1.0 range afterwards.
+
+**Why unused amounts are `0.0`.** New zones start with every amount at `0.0` and every destination at None, so `0.0` in a file whose route is None means nothing. Rhodes 3.25 and the factory library are like this. When the user changes a route between Amp and a bipolar destination, Bliss converts the stored amount so the depth stays the same: bipolar to Amp is `abs(value - 0.5) * 2`, Amp to bipolar is `0.5 + value * 0.5`. So a route set to Pitch from scratch reads 0.5 (none), not 0.0. A reader should still apply the table literally: a Pitch route with `value = 0.0` really is -2 octaves of LFO or envelope depth.
 
 ---
 
@@ -951,7 +978,7 @@ A program has 8 macros. Each macro is a child element within `<macros>`:
 
 ```xml
 <macro1 name="Cutoff" num_links="1">
-  <value value="0.5" sense="0.5"/>
+  <value value="0.5" sense="0.0"/>
   <links>
     <link1 zone_index="0" param_index="15" min_value="0.0" max_value="1.0"/>
   </links>
@@ -991,12 +1018,12 @@ The master switch and axis configuration are **program attributes** (see Program
 
 ```xml
 <expression>
-  <expr0 dest="2" invert="0"><amt value="1.0" sense="0.5"/></expr0>   <!-- X1 -->
-  <expr1 dest="0" invert="0"><amt value="1.0" sense="0.5"/></expr1>   <!-- X2 -->
-  <expr2 dest="3" invert="0"><amt value="1.0" sense="0.5"/></expr2>   <!-- Y1 -->
-  <expr3 dest="0" invert="0"><amt value="1.0" sense="0.5"/></expr3>   <!-- Y2 -->
-  <expr4 dest="1" invert="0"><amt value="1.0" sense="0.5"/></expr4>   <!-- Z1 -->
-  <expr5 dest="0" invert="0"><amt value="1.0" sense="0.5"/></expr5>   <!-- Z2 -->
+  <expr0 dest="2" invert="0"><amt value="1.0" sense="0.0"/></expr0>   <!-- X1 -->
+  <expr1 dest="0" invert="0"><amt value="1.0" sense="0.0"/></expr1>   <!-- X2 -->
+  <expr2 dest="3" invert="0"><amt value="1.0" sense="0.0"/></expr2>   <!-- Y1 -->
+  <expr3 dest="0" invert="0"><amt value="1.0" sense="0.0"/></expr3>   <!-- Y2 -->
+  <expr4 dest="1" invert="0"><amt value="1.0" sense="0.0"/></expr4>   <!-- Z1 -->
+  <expr5 dest="0" invert="0"><amt value="1.0" sense="0.0"/></expr5>   <!-- Z2 -->
 </expression>
 ```
 
@@ -1014,9 +1041,9 @@ The six slots are addressed by element name `expr0` … `expr5` and grouped into
 |----------|-----------|------|---------|-------------|
 | `dest`   | attribute | int  | `0`     | Modulation destination (RTDST index; legacy float accepted) |
 | `invert` | attribute | bool | `false` | Invert this slot's contribution |
-| `amt`    | child     | RTPAR | `value=1.0, sense=0.5` | Routing depth (morphable) |
+| `amt`    | child     | RTPAR | `value=1.0, sense=0.0` | Routing depth 0.0-1.0, unipolar (morphable) |
 
-Each slot multiplies its axis value by `amt` (and the destination's RTDST mask) and sums into the destination, exactly like an LFO/envelope route. A slot with `dest = None (0)` is inactive. When `mpe_enabled` is false the expression bus is dormant and the program behaves as a standard synth.
+Each slot multiplies its axis value by `amt` (and the destination's RTDST mask) and sums into the destination. Unlike LFO and envelope amounts, `amt` is not centre-biased: 0.0 = no modulation, 1.0 = full depth, and `invert` flips the sign. A slot with `dest = None (0)` is inactive. When `mpe_enabled` is false the expression bus is dormant and the program behaves as a standard synth.
 
 ### Axis Rest Model
 
@@ -1191,7 +1218,7 @@ On load Bliss rewrites the program version to the current one and migrates legac
 
 2. **Destructive edits / base64 waveform fallback:** When `has_destructive_edits` is `true` (or `1`), the zone may contain an `edited_waveform` element (attributes `channels`, `samples`, `sample_rate`) as a fallback. Up to 3.27 it holds one `channel_N` attribute per channel with base64 raw 32-bit float PCM. From 3.28 it has `codec="flac"` and a single `data` attribute with a base64 24-bit FLAC file of all channels.
 
-3. **Morph/Sense values:** The `sense` attribute inside RTPAR elements is specific to Bliss's morph system and has no standard equivalent in SFZ/SF2/Kontakt. It can be safely ignored on import.
+3. **Morph/Sense values:** The `sense` attribute inside RTPAR elements drives Bliss's mod wheel / velocity morph (see [Morph](#morph-sense)). It is stored bipolar with `0.0` = neutral and has no standard equivalent in SFZ/SF2/Kontakt. It can be ignored on import, or applied with the morph formula to bake a wheel position into the values.
 
 4. **Per-zone output routing:** `audio_out` maps zones to up to 5 output buses. Default to main/stereo output.
 

@@ -296,15 +296,29 @@ namespace BlissConvert {
 // --- Data structures ---------------------------------------------------------
 
 // RTPAR: value + sense stored as attributes on a child element
+// sense is bipolar -1..+1, 0 = no morph
 struct RtPar {
     float value = 0.0f;
-    float sense = 0.5f;
+    float sense = 0.0f;
 
     void parse(const XmlNode& node) {
         value = node.attrFloat("value", value);
         sense = node.attrFloat("sense", sense);
     }
+
+    // modWheel 0..1, velocity 0..127 (after the velocity curve), velMod = zone vel_mod
+    float morphed(float modWheel, int velocity, float velMod) const {
+        const float x = std::clamp(modWheel + (velocity / 127.0f) * velMod, 0.0f, 1.0f);
+        return x == 0.0f ? value : std::clamp(value + sense * x, 0.0f, 1.0f);
+    }
 };
+
+// Envelope/LFO route amount -> depth. Amp (dest 1) is unipolar, others centre-biased (0.5 = none).
+// Pitch depth in octaves is depth * 4 * source (source: env 0..1, LFO -1..1).
+inline float routeDepth(float amount, int dest) {
+    if (dest == 0) return 0.0f;
+    return dest == 1 ? amount * 0.5f : amount - 0.5f;
+}
 
 struct BlissZone {
     std::string name;
